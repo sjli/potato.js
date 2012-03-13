@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style>
+			canvas{box-shadow:3px 4px 5px #000;}
+		</style>
+	</head>
+	<script src="potato.js"></script>
+	<body>
+	<canvas id="cv1" width="600" height="300"></canvas>
+	<p class="tip">提示：点击canvas可增加运动的球</p>
+	<script>
+		var c =CB("cv1");
+		var Ball = c.Circle.extend(function(x, y, r) {
+			var diff = 0.1,self=this;
+			
+			this.color = "#" + Math.round(Math.random() * 256).toString(16) + Math.round(Math.random() * 256).toString(16) + Math.round(Math.random() * 256).toString(16);
+			this.border = r / 2;
+			this.easing = 0.01;
+			this.ranX = Math.round(Math.random() * c.canvas.width);
+			this.ranY = Math.round(Math.random() * c.canvas.height);
+			this.options={
+				fill:"#ccc",
+				stroke:self.color,
+				lineWidth:self.border
+			}
+
+			this.breath = function() {
+				diff *= (Math.abs(this.border - this.r / 2) > this.r / 8) ? -1 : 1;
+				this.border += diff;
+			};
+
+			this.randomMove = function() {
+				if (Math.round(this.x) != this.ranX && Math.round(this.y) != this.ranY) {
+					this.move(this.ranX, this.ranY);
+				} else {
+					this.ranX = Math.round(Math.random() * c.canvas.width);
+					this.ranY = Math.round(Math.random() * c.canvas.height);
+				}
+			};
+		});
+
+		var balls = [];
+		function addBall(){
+			var r = Math.round(Math.random() * 10) + 10;
+			var ball = Ball(c.canvas.x, c.canvas.y, r);
+			balls.push(ball);
+		}
+		addBall();
+		addBall();
+		addBall();
+		c.draw = function() {
+			for (var i = 0; i < balls.length; i++) {
+				balls[i].draw();
+			}
+		}
+
+		c.update = function() {
+			for (var i = 0; i < balls.length; i++) {
+				balls[i].breath();
+				balls[i].randomMove();
+			}
+		}
+		c.animate();
+		c.addEvent(c.canvas, "click", function() {
+			addBall();
+		})
+		c.addEvent(c.canvas,"mousemove",function(){
+			c.update = function() {
+				for (var i = 0; i < balls.length; i++) {
+					balls[i].breath();
+					balls[i].move(c.canvas.x,c.canvas.y);
+				}
+			}
+		})
+		c.addEvent(c.canvas,"mouseout",function(){
+			c.update = function() {
+				for (var i = 0; i < balls.length; i++) {
+					balls[i].breath();
+					balls[i].randomMove();
+				}
+			}
+		})
+	</script>
+	</body>
+</html>

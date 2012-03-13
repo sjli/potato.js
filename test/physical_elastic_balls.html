@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style>
+			canvas{box-shadow:3px 4px 5px #000;background:rgb(0,0,0);}
+		</style>
+		<script type="text/javascript" src="potato.js"></script>
+		
+	</head>
+	<body>
+	<canvas id="cv1" width="600" height="300"></canvas>
+	<p>提示：移动到球上可拖动，点击canvas空白处可添加球（上限为9）</p>
+	<script>
+			//window.onload=function(){
+				var c = CB("cv1");
+				var balls = [];
+				var blockAdd = false; //block the add function when want to drag ball
+				var stars = [];
+				var speed = 1;//stars moving speed
+				
+				//ball shape
+				var Ball = c.Circle.extend(function() {
+					this.vx = 0;
+					this.vy = 0;
+					this.spring = 0.01;
+					this.springLength = 100;
+					this.friction = 0.9;
+					this.options={fill:""}
+					
+					this.setDragable();
+					this.onmouseover = function() {
+						blockAdd = true;
+					}
+					this.onmouseout = function() {
+						blockAdd = false;
+						speed = 1;
+					}
+					this.ondrag = function() {
+						speed = 0;
+						//
+						addStars(100);
+					}
+				});
+				
+				function addBall(num) {
+					for (var i = 0; i < num; i++) {
+						var ct = Ball(Math.round(Math.random() * c.canvas.width), Math.round(Math.random() * c.canvas.height), 5);
+						balls.push(ct);
+					}
+				}
+
+				function addStars(num) {
+					for (var i = 0; i < num; i++) {
+						if (stars[i] == undefined) 
+							stars[i] = [Math.round(Math.random() * c.canvas.width), Math.round(Math.random() * c.canvas.height), Math.round(Math.random())];
+						stars[i][0] += speed / 2;
+						if (stars[i][0] > c.canvas.width) 
+							stars[i][0] -= c.canvas.width;
+						c.context.beginPath();
+						c.context.arc(stars[i][0], stars[i][1], stars[i][2], 0, Math.PI * 2, false);
+						c.context.closePath();
+						c.context.fill();
+					}
+				}
+				addBall(2);
+				c.context.globalAlpha = 0.5;
+				c.context.strokeStyle = "#fff";
+				c.context.fillStyle = "#fff";
+				c.draw = function() {
+					addStars(100);
+					for (var i = 0; i < balls.length; i++) {
+						balls[i].draw(c.context);
+						var others = balls.slice(0, i).concat(balls.slice(i + 1));
+						for (var j = i; j < others.length; j++) {
+							c.context.moveTo(balls[i].x, balls[i].y);
+							c.context.lineTo(others[j].x, others[j].y);
+						}
+						c.context.stroke();
+					}
+				}
+				c.update = function() {
+					for (var i = 0; i < balls.length; i++) {
+						var others = balls.slice(0, i).concat(balls.slice(i + 1));
+						if (!balls[i].dragging) {
+							for (var j = 0; j < others.length; j++) {
+								balls[i].move(others[j].x, others[j].y, "elastic");
+							}
+						}
+					}
+				}
+				c.animate();
+				//click to add one more ball
+				c.addEvent(c.canvas, "click", function() {
+					//test add ball until 9
+					if (!blockAdd && balls.length < 9) addBall(1);
+				})
+			//}
+		</script>
+	</body>
+</html>

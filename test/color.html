@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style>
+			canvas{box-shadow:3px 4px 5px #000;background:#eee;}
+			.tip{font-size:small;}
+			#colorView{display:inline-block;width:0.8em;height:0.8em;}
+		</style>
+		<script src="potato.js"></script>
+	</head>
+	<body>
+	<canvas id="cv1" width="320" height="280"></canvas>
+	<p>鼠标处颜色是: <span id="info"></span></p>
+	<p>当前选取的颜色是: <span id="chosedColor">-</span><span id="colorView"></span></p>
+	<p class="tip">(提示:单击取色，若单击处为右侧色相条则同时改变左侧区域色相)</p>
+	<script>
+		var c=new CanvasBase("cv1");
+		var context=c.context;
+		var s0=1,v0=255,h0=360,RGBMAX=255;
+		var cbox=[10,10,256,256];
+		var hbar=[280,10,20,256];
+		var currentHue=0;
+		var inbar=false,inbox=false;
+		//HSV/HSB颜色转换成RGB颜色
+		function HSV2RGB(h,s,v){
+			var hi=Math.floor((h/60))%6;
+			f=h/60-hi;
+			p=Math.round(v*(1-s));
+			q=Math.round(v*(1-f*s));
+			t=Math.round(v*(1-(1-f)*s));
+			var rgb=[];
+			switch(hi){
+				case 0:
+				rgb= [v,t,p];
+				break;
+				case 1:
+				rgb= [q,v,p];
+				break;
+				case 2:
+				rgb= [p,v,t];
+				break;
+				case 3:
+				rgb= [p,q,v];
+				break;
+				case 4:
+				rgb= [t,p,v];
+				break;
+				default:
+				rgb= [v,p,q];
+			}
+			return rgb;
+		}
+		//色相条
+		function hueBar(x,y,width,height){
+			for(var i=0;i<height;i++){
+				var rgb=HSV2RGB(i/height*h0,s0,v0);
+				context.beginPath();
+				context.rect(x,y+height-1-i,width,1);
+				context.fillStyle="rgb("+rgb.join(",")+")";
+				context.fill();
+			}
+		}
+		//等色相下饱和度S和色调V（明度B）的色盘
+		function svBox(x,y,width,height,hue){
+			for(var i=0;i<width;i++){
+				for(var j=0;j<height;j++){
+					var s=i/(width-1);
+					var v=(height-1)-j;
+					var rgb=HSV2RGB(hue,s,v);
+					context.beginPath();
+					context.rect(x+i,y+j,1,1);
+					context.fillStyle="rgb("+rgb.join(",")+")";
+					context.fill();
+				}
+			}
+		}
+		//色相条两侧指示箭头
+		var barPointer=function(x,y,r,dist){
+			this.x=x;
+			this.y=y;
+			this.r=r;
+			this.draw=function(){
+				context.beginPath();
+				context.moveTo(x-dist,y);
+				context.lineTo(x-r*2-dist,y-r);
+				context.lineTo(x-r*2-dist,y+r);
+				context.closePath();
+				context.moveTo(x+dist,y);
+				context.lineTo(x+r*2+dist,y-r);
+				context.lineTo(x+r*2+dist,y+r);
+				context.closePath();
+				context.strokeStyle="#999";
+				context.stroke();
+				context.fillStyle="#fff";
+				context.fill();
+			}
+		}
+		
+		hueBar(hbar[0],hbar[1],hbar[2],hbar[3]);
+		svBox(cbox[0],cbox[1],cbox[2],cbox[3],1);
+		var point1=new barPointer(hbar[0]+hbar[2]/2,hbar[1],3,10);
+		point1.draw();
+		
+		//鼠标事件
+		c.addEvent(c.canvas,"mousemove",function(){
+			if(c.canvas.x>=hbar[0] && c.canvas.x<hbar[0]+hbar[2] && c.canvas.y>hbar[1] && c.canvas.y<=hbar[1]+hbar[3]){
+				var hue=(hbar[1]+hbar[3]-c.canvas.y)/hbar[3]*h0;
+				var rgb=HSV2RGB(hue,s0,v0);
+				document.getElementById("info").innerHTML=rgb;
+				inbar=true;
+			}else{inbar=false;}
+			if(c.canvas.x>=cbox[0] && c.canvas.x<cbox[0]+cbox[2] && c.canvas.y>=cbox[1] && c.canvas.y<cbox[1]+cbox[3]){
+				var s=(c.canvas.x-cbox[0])/(cbox[2]-1);
+				var v=cbox[3]-1-(c.canvas.y-cbox[1]);
+				var rgb=HSV2RGB(currentHue,s,v);
+				document.getElementById("info").innerHTML=rgb;
+				inbox=true;
+			}else{inbox=false;}
+		});
+		
+		c.addEvent(c.canvas,"click",function(){
+			if(inbar || inbox){
+				if(inbar){
+					//Huebar arrow
+					context.clearRect(hbar[0]-10,0,10,c.canvas.height);
+					context.clearRect(hbar[0]+hbar[2],0,10,c.canvas.height);
+					var point1=new barPointer(hbar[0]+hbar[2]/2,c.canvas.y,3,10);
+					point1.draw();
+					//change color box
+					currentHue=(hbar[1]+hbar[3]-c.canvas.y)/hbar[3]*h0;
+					svBox(cbox[0],cbox[1],cbox[2],cbox[3],currentHue);
+				}
+				var rgb=document.getElementById("info").innerHTML.split(",");
+				var r=parseInt(rgb[0]).toString(16);
+				if(r.length==1)r="0"+r;
+				var g=parseInt(rgb[1]).toString(16);
+				if(g.length==1)g="0"+g;
+				var b=parseInt(rgb[2]).toString(16);
+				if(b.length==1)b="0"+b;
+				document.getElementById("chosedColor").innerHTML="#"+r+g+b;
+				document.getElementById("colorView").style["backgroundColor"]="#"+r+g+b;
+			}
+		});
+	</script>
+	</body>
+</html>

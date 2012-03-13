@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		
+	</head>
+	<body>
+<style>
+	.libinfo dt{float:left;font-weight:bold;}
+	.api .section{border-top:solid 2px #ddd;}
+	.api .section h1{
+	background:-moz-linear-gradient(left,#ddd 0,#fff 50%);
+	background:-o-linear-gradient(left,#ddd 0,#fff 50%);
+	background:-webkit-gradient(linear,0 0,50% 0,from(#ddd),to(#fff));
+	padding-left:1em;
+	margin-left:-1em;
+	}
+	.api .section h2{border-bottom:solid 1px #ccc;}
+	.api p strong{font-family:fix;}
+	.api .syntax,.api .code{font-family:monospace;}
+	.api .code{background:#eee;}
+	.api .float li{padding-left:1em;}
+</style>
+<strong>potato.js</strong>是出于canvas绘图实验目的而编写的一个小型javasctipt框架。
+<strong>主要功能:</strong>
+<ul>
+<li>自定义图形类创建、扩展，并提供四种预定义的基本图形类（Circle,Rect,Ellipse,Polygon）</li>
+<li>提供图形的事件绑定功能</li>
+<li>提供动画支持功能</li>
+</ul>
+<dl class="libinfo">
+<dt>latest version:</dt><dd>1.1</dd>
+<dt>browser support:</dt><dd>Firefox,Chrome,Opera,Safari,IE9</dd>
+<dt>download:</dt><dd><a href="http://www.ued-lab.com/sites/all/download/potato.js">potato-1.1.js</a></dd>
+</dl>
+<div class="api article">
+	<h1>Document</h1>
+	<div class="section">
+		<h1>Class:CanvasBase|CB</h1>
+		<p><strong>Summary:</strong>potato.js的基本类</p>
+		<p class="code">var c=CanvasBase(canvasId); or var c=CB(canvasId);</p>
+		<h2>Properties</h2>
+		<ul class="float">
+			<li><a href="#cvs-prop1">canvas</a></li>
+			<li><a href="#cvs-prop2">context</a></li>
+			<li><a href="#cvs-prop4">Shape</a></li>
+			<li><a href="#cvs-prop5">Circle|Rect|Ellipse,Polycon</a></li>
+			<li><a href="#cvs-prop3">currentMTX</a></li>
+		</ul>
+		<h2>Methods</h2>
+		<ul class="float">
+			<li><a href="#cvs-mtd1">addEvent</a></li>
+			<li><a href="#cvs-mtd6">removeEvent</a></li>
+			<li><a href="#cvs-mtd2">animate</a></li>
+			<li><a href="#cvs-mtd4">draw</a></li>
+			<li><a href="#cvs-mtd7">update</a></li>
+			<li><a href="#cvs-mtd8">cancelAnimate</a></li>
+			<li><a href="#cvs-mtd9">restoreAnimate</a></li>
+			<li><a href="#cvs-mtd3">clear</a></li>		
+			<li><a href="#cvs-mtd5">drawShapes</a></li>
+			<li><a href="#cvs-mtd10">map</a></li>
+		</ul>
+	</div>
+	<div class="section">
+		<h1>Class:Shape</h1>
+		<p><strong>Summary:</strong>potato.js中的基本图形类，将图形的实际构造函数作为传参.可通过extend等方法扩展</p>
+		<pre class="code"><code>var c=CB(canvasId);
+ var s=c.Shape(function(x,y,r){
+  this.x=x;
+  this.y=y;
+  this.r=r;
+  this.options={
+	fill:"",//fillStyle set
+	stroke:"",//strokeStyle set
+	lineWidth:1//lineWidth set
+  }
+  this.draw(function(){
+   c.context.rect(this.x,this.y,this.r);
+  });
+ }) //返回shape类（function）
+ var s1=s(100,100,100);//返回shape对象
+ var s2=s(100,100,100,{fill:"red"})
+ //图形的绘制样式参数options（Object{fill,stroke,lineWidth}）可在上面的构造函数中设定也可作为最后参数传入对象</code></pre>
+		<h2>Properties</h2>
+		<ul class="float">
+			<li><a href="#shp-prop1">store</a></li>
+		</ul>
+		<h2>Methods</h2>
+		<ul class="float">
+			<li><a href="#shp-mtd7">extend</a></li>
+			<li><a href="#shp-mtd7">extendDraw</a></li>
+			<li><a href="#shp-mtd1">draw</a></li>
+			<li><a href="#shp-mtd4">mouse events</a></li>
+			<li><a href="#shp-mtd5">remove</a></li>
+			<li><a href="#shp-mtd6">setDragable</a></li>
+		</ul>
+	</div>
+	<div class="section">
+		<h1>Details</h1>
+		<div id="cvs-prop1">
+			<p><strong>CanvasBase.canvas</strong>:HTMLCanvasElement对象</p>
+			<p class="code">var c=CB(canvasId);<br />HtmlCanvasElement c.canvas</p>
+		</div>
+		<div id="cvs-prop2">
+			<p><strong>CanvasBase.context</strong>:CanvasRenderingContext2D对象</p>
+			<p class="code">var c=CB(canvasId);<br />CanvasRenderingContext2D c.context</p>
+		</div>
+		<div id="cvs-prop4">
+			<p><strong>CanvasBase.Shape</strong>:potato.js中的基本图形类，将图形的实际构造函数作为传参.可通过extend等方法扩展</p>
+		</div>
+		<div id="cvs-prop5">
+			<p><strong>CanvasBase.(Circle|Rect|Ellipse|Polygon)</strong>:基于Shape类的预定义基本图形类，可通过extend等方法扩展,也可作为构造函数直接传参生成实例化对象。</p>
+			<p class="code">var c=CB(canvasId);</p>
+			<p class="syntax">Function: s=c.Circle <br />Object: o=c.Circle(Number:x,Number:y,Number:r)  </p>
+			<p class="syntax">Function: s=c.Rect <br />Object: o=c.Circle(Number:x,Number:y,Number:width,Number:height)  </p>
+			<p class="syntax">Function: s=c.Ellipse <br />Object: o=c.Circle(Number:centerX,Number:centerY,Number:xRadius,Number:yRadius)  </p>
+			<p class="syntax">Function: s=c.Polygon <br />Object: o=c.Circle(Number point1X,Number:point1Y[...]) //多边形类实例化最少依次传入3个点的x,y坐标即6个参数 </p>
+		</div>
+		<div id="cvs-mtd1">
+			<p><strong>CanvasBase.addEvent</strong>:添加绑定事件的方法</p>
+			<p class="syntax">addEvent(element,event_type,event_handler)</p>
+			<p class="code">var c=CB(canvasId);<br />c.addEvent(c.canvas,"click",function(){alert("clicked")})</p>
+		</div>
+		<div id="cvs-mtd6">
+			<p><strong>CanvasBase.removeEvent</strong>:移除已绑定到相关dom对象上的事件处理，相关事件处理在添加和移除时都必须以函数名称的形式调用，不能使用匿名函数</p>
+			<p class="code">var c=CB(canvasId);<br />var fn=function(){alert("clicked")};<br />c.addEvent(c.canvas,"click",fn);<br />c.removeEvent(c.canvas,"click",fn);</p>
+		</div>
+		<div id="cvs-mtd2">
+			<p><strong>CanvasBase.animate</strong>:基于requestAnimationFrame的动画调用方法(在IE10以下用setTimeout兼容)，在重定义draw和update方法后使用</p>
+			<p class="code">var c=CB(canvasId);<br />c.draw=function(){...};<br />c.update=function(){...};<br />
+			c.animate();</p>
+		</div>
+		<div id="cvs-mtd4">
+			<p><strong>CanvasBase.draw</strong>:帧绘制方法，在基于requestAnimationFrame的动画中可与update、animate一同使用来制作动画；</p>
+			<p class="code">var c=CB(canvasId);<br />c.draw=function(){...};<br />c.update=function(){...};<br />
+			c.animate();</p>
+		</div>
+		<div id="cvs-mtd7">
+			<p><strong>CanvasBase.update</strong>:帧更新方法，在基于requestAnimationFrame的动画中与draw、animate一同使用来制作动画；</p>
+			<p class="code">var c=CB(canvasId);<br />c.draw=function(){...};<br />c.update=function(){...};<br />
+			c.animate();</p>
+		</div>
+		<div id="cvs-mtd8">
+			<p><strong>CanvasBase.cancelAnimate</strong>:基于requestAnimationFrame的动画中止方法，返回中止时的帧数</p>
+			<p class="code">var c=CB(canvasId);<br />c.draw=function(){...};<br />c.update=function(){...};<br />
+			c.animate();<br />c.cancelAnimate();</p>
+		</div>
+		<div id="cvs-mtd9">
+			<p><strong>CanvasBase.restoreAnimate</strong>:恢复暂停中动画的方法，在cancelAnimate方法调用后的恢复方法；</p>
+			<p class="code">var c=CB(canvasId);<br />c.draw=function(){...};<br />c.update=function(){...};<br />
+			c.animate();<br />c.cancelAnimate();<br />c.restoreAnimate();</p>
+		</div>
+		<div id="cvs-mtd3">
+			<p><strong>CanvasBase.clear</strong>:重置Canvas画布的方法，基于原生的clearRect()但包含了transform后的区域校正。</p>
+			<p class="code">var c=CB(canvasId);<br />c.clear()</p>
+		</div>
+		<div id="cvs-mtd5">
+			<p><strong>CanvasBase.drawShapes</strong>:当前CanvasBase对象中所有Shape对象的主绘制方法,在Shape对象的drag事件绑定中自动调用，也可与clear一同对canvas中shape进行重新绘制。</p>
+		</div>
+		<div id="cvs-mtd10">
+			<p><strong>CanvasBase.map</strong>:从object中返回key数组和value数组的方法，主要用于fake 3d效果实现中对不同z-index的对象的drawFn重新排序以改变呈现效果</p>
+			<p class="syntax">var c=CB(canvasId),o={...};<br />c.map(o);//return object{key:Array,value:Array}</p>
+		</div>
+		
+		<hr>
+
+		<div id="shp-prop1">
+			<p><strong>Shape.store</strong>:Shape类的数据储存对象，储存内容包括:Object:cache_constr(shapes的构造函数)、Object:cache_drawFn(shapes的绘制函数)、Object:cache_shapeObj(shapes的实例引用)。</p>
+			<p>该对象在Shape构造和实例化时自动调用更新。同时为shape对象绑定相应的id_constr,id_drawFn和id_shapeObj。</p>
+			<p class="syntax">Shape.store{cache_constr:Object,cache_drawFn:Object,cache_shapeObj:Object}</p>
+		</div>
+		
+		<div id="shp-mtd7">
+			<p><strong>Shape.extend</strong>:Shape类（包括4个预定义图形类）的扩展方法。可扩展除图形绘制函数外的对Shape类的参数描述和事件绑定（图形绘制函数扩展通过extendDraw）。扩展方法可链式使用。</p>
+			<p class="code">var c=CB(canvasId);<br />
+			var s=Shape(function(x){this.x=x;});s.extend(function(){x,y}{this.y=y});<br />
+			var ball=c.Circle.extend(function(x,y,r,color){this.color=color;this.options={fill:this.color}});</p>
+		</div>
+		<div id="shp-mtd8">
+			<p><strong>Shape.extendDraw</strong>:Shape类的图形绘制函数扩展方法。可扩展图形绘制函数。扩展方法可链式使用。</p>
+			<p class="code">var c=CB(canvasId);<br />
+			var s=Shape(function(x){this.x=x;this.options={fill:this.color}});s.extend(function(){x,y}{this.y=y});<br />
+			s.extendDraw(function(){c.context.rect(this.x,this.y,this.x,this.y);})</p>
+		</div>
+		<div id="shp-mtd1">
+			<p><strong>Shape.draw</strong>:Shape对象的构造绘制和绘制回调方法，以匿名函数作参数的形式写入具体绘制构造函数。在图形实例化后作为图形对象的绘制回调方法;可链式使用。</p>
+			<pre class="code"><code>var c=CB(canvasId);
+var s=c.Shape(function(x,y,r){
+  this.draw(function(){
+    c.context.rect(x,y,r,r);
+  });
+});
+var s1=s(100,100,100,{fill:""});
+s1.draw();
+var s2=c.Circle(10,10,10).draw();</code></pre>
+		</div>
+		<div id="shp-mtd4">
+			<p><strong>Shape.(onclick|ondrag|onmousedown|onmousemove|onmouseout|onmouseover|onmouseup|addEvent|removeEvent)</strong>:Shape对象的事件绑定|取消绑定方法。</p>
+		</div>
+		<div id="shp-mtd5">
+			<p><strong>Shape.remove</strong>:将已实例化的Shape对象从canvas画布中移除的方法。</p>
+		</div>
+		<div id="shp-mtd6">
+			<p><strong>Shape.setDragable</strong>:Shape对象是否开启拖放支持的方法，Shape对象默认不启用拖放,当该方法调用时无arguments或arguments[0]==true时启用拖放支持。</p>
+			<p class="syntax">Shape.setDragable([boolean])</p>
+		</div>
+	</div>
+	<div class="section">
+		<h1>Demos</h1>
+		<ul>
+			<li><a href="http://www.ued-lab.com/canvas-shape-detect-and-drag-test">shape events:图形识别和拖放</a></li>
+			<li><a href="http://www.ued-lab.com/canvas-shape-random-move">shape move:图形随机运动</a></li>
+			<li><a href="http://www.ued-lab.com/canvas-shape-elastic-move">shape move:图形弹性运动</a></li>
+			<li><a href="http://www.ued-lab.com/canvas-3d-dart">animate:Canvas 3D投射</a></li>
+		</ul>
+	</div>
+</div>
+	</body>
+</html>
