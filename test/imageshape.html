@@ -38,7 +38,6 @@ document.getElementById("img4").onload=function(){
 			dataObj=c.context.getImageData(0,0,size,size);
 			c.clear();
 			fishdata.dataObj=dataObj;
-			fishdata.src=srcs[i];
 			fishdata.direction=1;
 			fishesdata.push(fishdata);
         }
@@ -48,37 +47,29 @@ document.getElementById("img4").onload=function(){
 
 
     function reverseData(superDataObj){
-        var ret={},newDataObj={},dataObj=superDataObj.dataObj;
-        
-        if(!superDataObj.reverseData){
-			var tempdata=Array.prototype.slice.call(dataObj.data,0),
-			data=dataObj.data,
-			length=dataObj.width*dataObj.height*4;
-			
-			for(var i=0;i<dataObj.height;i++){
-				for(var j=0;j<dataObj.width*4;j+=4){
-					var index=j+i*dataObj.width*4;
-					var lineEnd=((i+1)*dataObj.width-1)*4;
-					data[index]=tempdata[lineEnd-j];
-					data[index+1]=tempdata[lineEnd-j+1];
-					data[index+2]=tempdata[lineEnd-j+2];
-					data[index+3]=tempdata[lineEnd-j+3];
-				}
+        var ret={},newDataObj={},
+		dataObj=superDataObj.dataObj,
+		tempdata=Array.prototype.slice.call(dataObj.data,0),
+		data=dataObj.data,
+		length=dataObj.width*dataObj.height*4;
+		
+		for(var i=0;i<dataObj.height;i++){
+			for(var j=0;j<dataObj.width*4;j+=4){
+				var index=j+i*dataObj.width*4;
+				var lineEnd=((i+1)*dataObj.width-1)*4;
+				data[index]=tempdata[lineEnd-j];
+				data[index+1]=tempdata[lineEnd-j+1];
+				data[index+2]=tempdata[lineEnd-j+2];
+				data[index+3]=tempdata[lineEnd-j+3];
 			}
-			newDataObj={
-					data:data,
-					width:dataObj.width,
-					height:dataObj.height
-			};
-			ret.dataObj=newDataObj;
-			ret.reverseData=dataObj;
-			ret.direction=!!superDataObj.direction ? -1*superDataObj.direction : -1;
-        }else{
-			newObj=superDataObj.reverseData;
-			ret.dataObj=newObj;
-			ret.reverseData=dataObj;
-			ret.direction=-1*superDataObj.direction;
-        }
+		}
+		newDataObj={
+				data:data,
+				width:dataObj.width,
+				height:dataObj.height
+		};
+		ret.dataObj=newDataObj;
+		ret.direction=!!superDataObj.direction ? -1*superDataObj.direction : -1;
         return ret;
     }
 
@@ -95,7 +86,7 @@ document.getElementById("img4").onload=function(){
         this.ranY = Math.abs(Math.round(Math.random() * (c.canvas.height-this.img.height*2)+this.img.height));
         //set direction when initialize
         if(this.ranX>this.x){
-			this.data=reverseData(fishData);
+			this.data=reverseData(this.data);
         }
         
         this.setDragable();
@@ -114,7 +105,7 @@ document.getElementById("img4").onload=function(){
 				this.ranY = Math.abs(Math.round(Math.random() * (c.canvas.height-this.img.height*2)+this.img.height));
 				//reverse imgdata when direction change
 				if((this.ranX>this.x && this.data.direction==1) || (this.ranX<this.x && this.data.direction==-1)){
-						this.data=reverseData(this.data);
+					this.data=reverseData(this.data);
 				}
 			}
         };
