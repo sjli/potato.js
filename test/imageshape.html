@@ -1,130 +1,151 @@
 ﻿<!DOCTYPE html>
 <html lang="zh-CN">
-	<head>
-		<meta charset="utf-8">
-		<title></title>
-		<style>
-			canvas{box-shadow:3px 4px 5px #000;background:url(images/sea.jpg) center no-repeat;}
-		</style>
-		<script src="potato.js"></script>
-		<script>
-		window.onload=function(){
-			var c=CB("cv1");
-			var fishSrcs=["images/fish1.png",
-					"images/fish2.png",
-					"images/fish3.png",
-					"images/fish4.png"];
-			function fishDataBuild(srcs,minSize,maxSize){
-				var ret=[],i,img,size,data;
-				for(i in srcs){
-					img=new Image();
-					img.src=srcs[i];
-					size=Math.round(Math.abs(Math.random()*(maxSize-minSize)+minSize));
-					c.context.drawImage(img,0,0,size,size);
-					data=c.context.getImageData(0,0,size,size);
-					data.direction=1;
-					c.clear();
-					ret.push(data);
-				}
-				return ret;
-			}
+  <head>
+    <meta name="generator" content=
+    "HTML Tidy for Windows (vers 14 February 2006), see www.w3.org">
+    <meta charset="utf-8">
+    <title></title>
+    <style type="text/css">
+                canvas{box-shadow:3px 4px 5px #000;background:url(images/sea.jpg) center no-repeat;}
+    </style>
+    
+  </head>
+  <body>
+<canvas id="cv0312" width="600" height="300"></canvas>
+<!-- preload img src -->
+<img src="images/fish1.png" style="position:absolute;top:-9999px;left:-9999px;height:0;"> 
+<img src="images/fish2.png" style="position:absolute;top:-9999px;left:-9999px;height:0;"> 
+<img src="images/fish3.png" style="position:absolute;top:-9999px;left:-9999px;height:0;"> 
+<img id="img4" src="images/fish4.png" style="position:absolute;top:-9999px;left:-9999px;height:0;">
+<script src="potato.js" type="text/javascript"></script>
+<script type="text/javascript">
+document.getElementById("img4").onload=function(){
+    var c=CB("cv0312");
+    var fishSrcs=["images/fish1.png",
+                        "images/fish2.png",
+                        "images/fish3.png",
+                        "images/fish4.png"];
+    var fishesdata=fishDataBuild(fishSrcs,25,75);
 
-			var fishdata=fishDataBuild(fishSrcs,25,75);
+    function fishDataBuild(srcs,minSize,maxSize){
+        var fishesdata=[],i,img,size,data;
+        for(i in srcs){
+			var fishdata={};
+			img=new Image();
+			img.src=srcs[i];
+			size=Math.round(Math.abs(Math.random()*(maxSize-minSize)+minSize));
+			c.context.drawImage(img,0,0,size,size);
+			dataObj=c.context.getImageData(0,0,size,size);
+			c.clear();
+			fishdata.dataObj=dataObj;
+			fishdata.src=srcs[i];
+			fishdata.direction=1;
+			fishesdata.push(fishdata);
+        }
+        return fishesdata;
+    }
 
-			function reverseData(dataObj){
-				var newObj={};
-				if(!dataObj.reverseObj){
-					var data=[],
-					length=dataObj.width*dataObj.height*4;
-					for(var i=0;i<dataObj.height;i++){
-						for(var j=0;j<dataObj.width*4;j+=4){
-							var index=j+i*dataObj.width*4;
-							var lineEnd=((i+1)*dataObj.width-1)*4;
-							data[index]=dataObj.data[lineEnd-j];
-							data[index+1]=dataObj.data[lineEnd-j+1];
-							data[index+2]=dataObj.data[lineEnd-j+2];
-							data[index+3]=dataObj.data[lineEnd-j+3];
-						}
-					}
-					newObj={
-						data:data,
-						width:dataObj.width,
-						height:dataObj.height,
-						reverseObj:dataObj,
-						direction:!!dataObj.direction ? -1*dataObj.direction : -1
-					}
-				}else{
-					newObj=dataObj.reverseObj;
-					newObj.reverseObj=dataObj;
-					newObj.direction=-1*dataObj.direction;
-				}
-				return newObj;
-			}
-			//data_img1=reverseData(data_img1);
-			var Fish=c.Shape(function(x,y,r,img){		
-				this.x=x;
-				this.y=y;
-				this.r=r;
-				this.img=img;
-				this.easing = 0.01;
-				this.vx=0;
-				this.vy=0;
-				this.ranX = Math.abs(Math.round(Math.random() * (c.canvas.width-img.width*2)+img.width));
-				this.ranY = Math.abs(Math.round(Math.random() * (c.canvas.height-img.height*2)+img.height));
-				//set direction when initialize
-				if(this.ranX>this.x){
-					this.img=reverseData(this.img);
-				}
-	
-				this.setDragable();
-	
-				this.draw(function(){
-					//build a rect to get shape path
-					c.context.rect(this.x,this.y,this.r,this.r);
-					c.context.putImageData(this.img,this.x,this.y);
-				})
-	
-				this.randomMove = function() {
-					if (Math.round(this.x) != this.ranX && Math.round(this.y) != this.ranY) {
-						this.move(this.ranX, this.ranY);
-					} else {
-						this.ranX = Math.abs(Math.round(Math.random() * (c.canvas.width-img.width*2)+img.width));
-						this.ranY = Math.abs(Math.round(Math.random() * (c.canvas.height-img.height*2)+img.height));
-						//reverse imgdata when direction change
-						if((this.ranX>this.x && this.img.direction==1) || (this.ranX<this.x && this.img.direction==-1)){
-							this.img=reverseData(this.img);
-						}
-					}
-				};
-			});
 
-			var fishes=[];
 
-			(function initFishes(){
-				for(var i in fishdata){
-					var fish=Fish(Math.round(Math.random() * (c.canvas.width-fishdata[i].width*2)+fishdata[i].width),
-							Math.round(Math.random() * (c.canvas.height-fishdata[i].height*2)+fishdata[i].height),
-							fishdata[i].width,fishdata[i]);
-					fishes.push(fish); 
-				}
-			})();
-
-			c.draw=function(){
-				for(var i in fishes){
-					fishes[i].draw();
+    function reverseData(superDataObj){
+        var ret={},newDataObj={},dataObj=superDataObj.dataObj;
+        
+        if(!superDataObj.reverseData){
+			var tempdata=Array.prototype.slice.call(dataObj.data,0),
+			data=dataObj.data,
+			length=dataObj.width*dataObj.height*4;
+			
+			for(var i=0;i<dataObj.height;i++){
+				for(var j=0;j<dataObj.width*4;j+=4){
+					var index=j+i*dataObj.width*4;
+					var lineEnd=((i+1)*dataObj.width-1)*4;
+					data[index]=tempdata[lineEnd-j];
+					data[index+1]=tempdata[lineEnd-j+1];
+					data[index+2]=tempdata[lineEnd-j+2];
+					data[index+3]=tempdata[lineEnd-j+3];
 				}
 			}
-			c.update=function(){
-				for(var i in fishes){
-					fishes[i].randomMove();
+			newDataObj={
+					data:data,
+					width:dataObj.width,
+					height:dataObj.height
+			};
+			ret.dataObj=newDataObj;
+			ret.reverseData=dataObj;
+			ret.direction=!!superDataObj.direction ? -1*superDataObj.direction : -1;
+        }else{
+			newObj=superDataObj.reverseData;
+			ret.dataObj=newObj;
+			ret.reverseData=dataObj;
+			ret.direction=-1*superDataObj.direction;
+        }
+        return ret;
+    }
+
+    var Fish=c.Shape(function(x,y,r,fishData){              
+        this.x=x;
+        this.y=y;
+        this.r=r;
+        this.data=fishData;
+        this.img=this.data.dataObj;
+        this.easing = 0.01;
+        this.vx=0;
+        this.vy=0;
+        this.ranX = Math.abs(Math.round(Math.random() * (c.canvas.width-this.img.width*2)+this.img.width));
+        this.ranY = Math.abs(Math.round(Math.random() * (c.canvas.height-this.img.height*2)+this.img.height));
+        //set direction when initialize
+        if(this.ranX>this.x){
+			this.data=reverseData(fishData);
+        }
+        
+        this.setDragable();
+        
+        this.draw(function(){
+			//build a rect to get shape path
+			c.context.rect(this.x,this.y,this.r,this.r);
+			c.context.putImageData(this.img,this.x,this.y);
+        })
+        
+        this.randomMove = function() {
+			if (Math.round(this.x) != this.ranX && Math.round(this.y) != this.ranY) {
+				this.move(this.ranX, this.ranY);
+			} else {
+				this.ranX = Math.abs(Math.round(Math.random() * (c.canvas.width-this.img.width*2)+this.img.width));
+				this.ranY = Math.abs(Math.round(Math.random() * (c.canvas.height-this.img.height*2)+this.img.height));
+				//reverse imgdata when direction change
+				if((this.ranX>this.x && this.data.direction==1) || (this.ranX<this.x && this.data.direction==-1)){
+						this.data=reverseData(this.data);
 				}
 			}
-			c.animate();
-		}	
-		</script>
-	</head>
-	<body>
-	<canvas id="cv1" width="600" height="300"></canvas>
+        };
+    });
 
-	</body>
+    var fishes=[];
+
+    (function initFishes(){
+        for(var i in fishesdata){
+			var width=fishesdata[i].dataObj.width,height=fishesdata[i].dataObj.height;
+			
+			var fish=Fish(Math.round(Math.random() * (c.canvas.width-width*2)+width),
+				Math.round(Math.random() * (c.canvas.height-height*2)+height),
+				width,fishesdata[i]);
+							
+			fishes.push(fish); 
+        }
+    })();
+
+    c.draw=function(){
+        for(var i in fishes){
+			fishes[i].draw();
+        }
+    }
+    c.update=function(){
+        for(var i in fishes){
+			fishes[i].randomMove();
+        }
+    }
+    c.animate();
+}
+</script>
+  </body>
 </html>
