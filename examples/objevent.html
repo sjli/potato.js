@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style>
+			canvas{box-shadow:3px 4px 5px #000;}
+			#shapeinfo{width:300px;height:100px;overflow:auto;border:inset 1px #ccc;}
+		</style>
+		<script type="text/javascript" src="potato.js"></script>
+	</head>
+	<body>
+	<canvas id="cv1" width="400" height="300"></canvas>
+	<p id="shapeinfo"></p>
+	<script>
+
+	//定义基本类
+	c=CB("cv1");
+	//定义图形类1
+	var Circle=c.Circle.extend(function(x,y,r,name){
+		this.name=name;
+		this.setDragable();//remove it or set 'false' as arguments to cancel drag
+		this.options={fill:""};
+	
+		//定义图形事件处理allow customize event handler in Shape definition
+		this.onclick=function(){
+			document.getElementById("shapeinfo").innerHTML+=this.name+" clicked <br />";
+		};
+		this.onmousedown=function(){
+			document.getElementById("shapeinfo").innerHTML+=this.name+" mouse down <br />";
+			this.options.fill="orange";
+		};
+		this.onmouseup=function(){
+			document.getElementById("shapeinfo").innerHTML+=this.name+" mouseup <br />";
+		};
+		this.onmousemove=function(){				
+			this.options.fill="red";	
+		};
+		this.onmouseout=function(){
+			document.getElementById("shapeinfo").innerHTML+=this.name+" out <br />";
+			this.options.fill="";
+		};
+		this.onmouseover=function(){
+			document.getElementById("shapeinfo").innerHTML+=this.name+" over <br />";
+		};
+		this.ondrag=function(){
+			this.options.fill="orange";
+		};
+	})
+	//定义图形类2
+	var Rect=c.Shape(function(x,y,width,height,name,color){
+		this.x=x;
+		this.y=y;
+		this.width=width;
+		this.height=height;
+		this.name=name;
+		this.color=color;
+		this.setDragable();//remove it or set 'false' as arguments to cancel drag
+		this.options={fill:this.color};
+		this.draw(function(){
+			c.context.rect(this.x,this.y,this.width,this.height);
+			c.context.rect(this.x,this.y+this.width/2,this.width,this.height);
+			c.context.rect(this.x+this.width,this.y,this.height,this.width);
+			c.context.rect(this.x,this.y,this.height,this.width);
+		})
+	});
+	//实例化图形并调用绘制方法
+	var c1=Circle(100,100,20,"c1").draw();
+
+	c.context.save();
+	c.context.scale(0.5,0.5);
+	var c2=Circle(410,300,20,"c2");
+	c2.draw();	
+	c.context.restore();
+
+	var c3=Circle(310,100,20,"c3").draw();
+	var c4=Rect(180,180,40,5,"c4","green");
+	//since draw() return the object itself, it could write seperately or in chain;
+	c4.draw();
+
+	//also allow customize event handler on single shape object
+	c4.ondrag=function(){
+		this.options.fill="blue";
+	}
+	c4.onmouseout=function(){
+		this.options.fill="green";
+	}
+	</script>
+	</body>
+</html>

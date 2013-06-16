@@ -1,0 +1,169 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style>
+			canvas{box-shadow:3px 4px 5px #000;background:#eee;}
+		</style>
+		<script type="text/javascript" src="potato.js"></script>
+		
+	</head>
+	<body>
+	<canvas id="cv1" width="500" height="200"></canvas>
+	<p>提示：移动到球上可拖动，点击canvas空白处可添加球，球在碰撞若干次后消失</p>
+	<script>
+			var c = CB("cv1");
+			var bubbles = [];
+			var blockAdd = false; //block the add function when want to drag ball
+			var spring = 0.9; //set from 0.1(soft) to 1(hard)
+			var bounce = -1;
+			var grivity = 1;
+			
+			//shape define
+			var Bubble = c.Circle.extend(function(x, y, r) {
+				this.x = x;
+				this.y = y;
+				this.r = r;
+				this.vx = 0;
+				this.vy = 0;
+				this.color = "rgb(" + Math.round(Math.random() * 256) + "," + Math.round(Math.random() * 256) + "," + Math.round(Math.random() * 256) + ")";
+				this.spring = spring;
+				this.bounce = bounce;
+				this.friction = 0.9;
+				this.canHits = Math.round(Math.random() * 5) + 30;
+
+				this.setDragable();
+
+				//rewrite the move handler
+				this.move = function() {
+					this.vy += grivity;
+					this.x += this.vx;
+					this.y += this.vy;
+					if (this.x + this.r > c.canvas.width) {
+						this.x = c.canvas.width - this.r;
+						this.vx *= this.bounce * this.friction;
+					} else if (this.x - this.r < 0) {
+						this.x = this.r;
+						this.vx *= this.bounce * this.friction;
+					}
+					if (this.y + this.r > c.canvas.height) {
+						this.y = c.canvas.height - this.r;
+						this.vy *= this.bounce * this.friction;
+					} else if (this.y - this.r < 0) {
+						this.y = this.r;
+						this.vy *= this.bounce * this.friction;
+					}
+				};
+
+				this.isLiving = function() {
+					//exist time
+					if (this.canHits < 0) {
+						var ind = bubbles.indexOf(this);
+						bubbles = bubbles.slice(0, ind).concat(bubbles.slice(ind + 1)); //remove from bubbles
+						this.remove(); //remove from drawlist which use in canvas mouse events
+						return false;
+					}
+					return true;
+				};
+
+				this.onmousedown = function() {
+					this.tempMove = this.move;
+					this.move = function() {};
+					//set velocity zero
+					this.vx = 0;
+					this.vy = 0;
+					this.tempx0 = this.x;
+					this.tempy0 = this.y;
+					blockAdd = true;
+				};
+
+				this.ondrag = function() {
+					for (var i = 0; i < bubbles.length; i++) {
+						if (bubbles[i] != this && this.isHitted(bubbles[i])) {
+							var dist = this.isHitted(bubbles[i])[0];
+							var angle = this.isHitted(bubbles[i])[1];
+							bubbles[i].x += dist * Math.cos(angle);
+							bubbles[i].y += dist * Math.sin(angle);
+						}
+					}
+				};
+
+				this.onmouseup = function() {
+					this.tempx1 = this.x;
+					this.tempy1 = this.y;
+					//set the new velocity
+					this.vx = (this.tempx1 - this.tempx0) / 5;
+					this.vy = (this.tempy1 - this.tempy0) / 5;
+					this.move = this.tempMove;
+					this.tempMove = function(){};
+					this.tempx0 = this.tempx1 = this.tempy0 = this.tempy1 = null;
+				};
+
+				this.onmouseout = function() {
+					blockAdd = false;
+				};
+			});
+			
+			Bubble.extendDraw(function(){
+				var gradient = context.createRadialGradient(this.x - this.r / 4, this.y - this.r / 4, 0, this.x, this.y, this.r);
+				gradient.addColorStop(0, "#fff");
+				gradient.addColorStop(1, this.color);
+				this.options={fill : gradient};
+			});
+
+			function addBubble(num, x, y) {
+				if (arguments.length == 1) x = c.canvas.width / 2;
+				if (arguments.length == 1) y = c.canvas.height / 2
+				for (var i = 0; i < num; i++) {
+					var ct = Bubble(x + Math.round(Math.random() * 20) - 10, y + Math.round(Math.random() * 20) - 10, Math.round(Math.random() * 5 + 7) * 2);
+					bubbles.push(ct);
+					bubbles[i].vx = Math.round(Math.random() * 4) - 2;
+					bubbles[i].vy = Math.round(Math.random() * 4) - 2;
+				}
+			}
+
+			//initial
+			addBubble(5);
+
+			//animate set
+			c.draw = function() {
+				for (var i = 0; i < bubbles.length; i++) {
+					bubbles[i].draw(c.context);
+				}
+			}
+			c.update = function() {
+				for (var i = 0; i < bubbles.length; i++) {
+					bubbles[i].move();
+					var others = bubbles.slice(0, i).concat(bubbles.slice(i + 1));
+					for (var j = i; j < others.length; j++) {
+						if (others[j].isHitted(bubbles[i])) {
+							var angle = others[j].isHitted(bubbles[i])[1];
+							var tx = others[j].x + Math.cos(angle) * (others[j].r + bubbles[i].r); //the edge x of two hitted bubbles
+							var ty = others[j].y + Math.sin(angle) * (others[j].r + bubbles[i].r); //the edge y of two hitted bubbles
+							var ax = (tx - bubbles[i].x) * bubbles[i].spring;
+							var ay = (ty - bubbles[i].y) * bubbles[i].spring;
+							//velocity change
+							others[j].vx = (others[j].vx - ax) * others[i].friction;
+							others[j].vy = (others[j].vy - ay) * others[i].friction;
+							bubbles[i].vx = (bubbles[i].vx + ax) * bubbles[i].friction;
+							bubbles[i].vy = (bubbles[i].vy + ay) * bubbles[i].friction;
+							//bubble survive status change
+							bubbles[i].canHits--;
+							others[j].canHits--;
+						}
+					}
+					bubbles[i].isLiving();
+				}
+			}
+			c.animate();
+
+			//mouse events set
+			c.addEvent(c.canvas, "click", function() {
+				if (!blockAdd) {
+					addBubble(3, c.canvas.x, c.canvas.y)
+				}
+			})
+		</script>
+	</body>
+</html>

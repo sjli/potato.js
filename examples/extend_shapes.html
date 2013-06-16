@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style>
+			canvas{box-shadow:3px 4px 5px #000;}
+		</style>
+		<script src="potato.js"></script>
+		<script src="../jquery-1.4.2.min.js"></script>
+	</head>
+	<body>
+	<canvas id="cv1" width="800" height="400"></canvas>
+	
+	<script>
+		var c=CB("cv1");
+		var s1=c.Rect.extend(function(x,y,r,r,options){
+			this.options=options;
+			this.options.fill="red";
+		})
+	
+		
+		var s2=c.Circle.extend(function(x,y,r,options){
+			this.options=options;
+		})
+		var s11=s1(100,200,30,40,{stroke:""})
+		.draw().setDragable();
+		var s22=s2(10,20,30,{stroke:""}).draw().setDragable();
+		var s23=s2(110,20,30,{stroke:""}).draw().setDragable();
+	</script>
+	</body>
+</html>

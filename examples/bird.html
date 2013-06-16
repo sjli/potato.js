@@ -1,0 +1,98 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Canvas test draw Matrix</title>
+		<style>
+			canvas{border:dashed 1px #999;}
+		</style>
+		<script type="text/javascript" src="potato.js"></script>
+	</head>
+	<body>
+		<div id="info"></div>
+		
+		<canvas id="cv1" width="400" height=300>对不起，您使用的浏览器目前不支持该页面所需要的功能，请使用firefox、chrome、opera、safari等浏览器查看</canvas><br />
+		<script type="text/javascript">
+			var c = CB("cv1");
+			
+			var ms = false;//mouse hover to change the rotate direction 
+			
+			var Figure = c.Shape(function(ox, oy, width, height, angle, color, shape) {
+				this.ox = ox; //origin x
+				this.oy = oy; //origin y
+				
+				this.x = ox;
+				this.y = oy;
+				
+				this.width = width;
+				this.height = height;
+				
+				this.angle = angle;
+				this.realAngle = 0;
+				
+				this.zIndex = 0;
+				this.color = color;
+				this.shape = shape ? shape : "triangle";
+				this.options={fill:this.color};
+
+				this.update = function() {
+					this.realAngle = Math.PI * 2 / 360 * this.angle;
+					this.zIndex = Math.sin(this.realAngle);
+					this.x = this.ox * Math.cos(this.realAngle);
+				};
+
+				this.draw (function() {
+					if (this.shape == "triangle") {
+						c.context.moveTo(this.x, this.oy);
+						c.context.lineTo(this.x, this.oy + this.height);
+						c.context.lineTo(Math.round((this.width + this.ox) * Math.cos(this.realAngle)), this.oy + this.height);
+						
+					} else if (this.shape == "ellipse") {
+						c.context.scale(Math.abs(Math.cos(this.realAngle)), 1);
+						c.context.arc((this.width / 2 + this.ox) * (Math.cos(this.realAngle) > 0 ? 1 : -1), (this.height / 2 + this.oy), this.width / 2, 0, Math.PI * 1, false);
+					}
+				});
+				
+			});
+			
+			c.context.translate(c.canvas.width / 2, c.canvas.height / 2);
+			
+			var rect1 = Figure(0, 0, 100, 50, 0, "blue");
+				rect2 = Figure(0, 0, 100, 50, 180, "red"),
+				rect3 = Figure(0, 0, 75, 75, 90, "yellow"),
+				rect4 = Figure(0, -30, 75, 75, 270, "green"),
+				eyeball = Figure(14, -4, 16, 16, 270, "white", "ellipse"),
+			   eye = Figure(20, 1, 6, 6, 270, "black", "ellipse");
+
+			c.update = function() {
+				if (c.Shape.store.id_shapeObj>1) {
+					var objs=c.Shape.store.cache_shapeObj;
+					for (var i in objs) {
+						objs[i].realAngle = Math.PI * 2 / 360 * objs[i].angle;
+						objs[i].zIndex = Math.sin(objs[i].realAngle);
+						objs[i].x = objs[i].ox * Math.cos(objs[i].realAngle);
+						if (ms) {
+							objs[i].angle--;
+						}
+						else {
+							objs[i].angle++;
+						}
+					}
+				}
+			};
+
+			c.draw = function() {
+				var shapes=c.Shape.store.cache_shapeObj;
+				shapes=c.map(shapes).value;
+				shapes=shapes.sort(function(a,b){return a.zIndex>b.zIndex ? 1:-1})
+				for (var i =0;i< shapes.length;i++) {
+					shapes[i].draw();
+				}
+			};
+			c.animate();
+			c.addEvent(c.canvas,"mouseover",function(){ms=true});
+			c.addEvent(c.canvas,"mouseout",function(){ms=false});
+			
+		</script>
+	</body>
+</html>
